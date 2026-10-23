@@ -47,7 +47,7 @@ Navegador ──HTTP(S)──> DockPilot (FastAPI)
 Requisitos: Docker Engine 20.10+ y Docker Compose v2.
 
 ```bash
-git clone https://github.com/<usuario>/dockpilot.git
+git clone https://github.com/JUANRESTREPO95/dockpilot.git
 cd dockpilot
 cp .env.example .env      # ajusta HOST_IP si hace falta
 docker compose up -d --build
