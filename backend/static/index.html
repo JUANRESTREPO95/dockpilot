@@ -4,172 +4,149 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DockPilot</title>
-  <link rel="stylesheet" href="/static/style.css?v=4" />
-  <script>window.__APP_VERSION__ = 2;</script>
+  <link rel="stylesheet" href="/static/style.css?v=5" />
 </head>
 <body>
 
-  <header>
-    <div class="user-bar" id="user-bar">
-      <span class="user-name" id="user-name"></span>
-      <button class="icon-btn" onclick="openSettings()" title="Cuenta">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <svg class="brand-mark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="6" rx="2"></rect>
+          <rect x="3" y="14" width="18" height="6" rx="2"></rect>
         </svg>
-      </button>
-      <button class="icon-btn" onclick="logout()" title="Cerrar sesión">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-      </button>
-    </div>
-    <h1>DockPilot</h1>
-    <p>Panel de control de contenedores Docker</p>
-  </header>
+        <span class="brand-name">DockPilot</span>
+      </div>
 
-  <div id="pwd-warning" class="pwd-warning hidden">
-    <span>Estás usando la contraseña por defecto.</span>
-    <button onclick="openSettings()">Cambiarla ahora</button>
-  </div>
+      <nav class="nav" id="nav" aria-label="Servidores"></nav>
 
-  <!-- PESTAÑAS -->
-  <div class="tabs-wrapper">
-    <div class="tabs" id="tabs"></div>
-    <button class="btn-add-ssh" onclick="openAddSSH()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Agregar servidor
-    </button>
-  </div>
+      <div class="sidebar-foot">
+        <div class="user">
+          <span class="user-name" id="user-name"></span>
+          <span class="user-role">Administrador</span>
+        </div>
+        <div class="user-actions">
+          <button class="icon-btn" onclick="openSettings()" title="Cuenta" aria-label="Cuenta">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <button class="icon-btn" onclick="logout()" title="Cerrar sesión" aria-label="Cerrar sesión">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
 
-  <!-- CONTENIDO DE PESTAÑAS -->
-  <main id="tab-content">
+    <div class="nav-backdrop" id="nav-backdrop" onclick="closeNav()"></div>
 
-    <!-- LOCAL -->
-    <div class="tab-panel active" id="panel-local">
-      <div class="panel-header">
-        <h2>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" onclick="toggleNav()" aria-label="Menú">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
-          Docker Local
-        </h2>
-        <button class="refresh-btn" onclick="loadAll()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <polyline points="1 20 1 14 7 14"></polyline>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-          </svg>
-          Actualizar
         </button>
-      </div>
-      <div id="metrics-local" class="metrics-bar">
-        <div class="metric-item"><span class="metric-label">CARGANDO...</span><div class="metric-value">-</div></div>
-      </div>
-      <div id="local-containers" class="container-grid">
-        <div class="empty-state"><p>Cargando contenedores...</p></div>
-      </div>
-    </div>
 
-  </main>
+        <div class="titles">
+          <h1 id="screen-title">Local</h1>
+          <p class="scope" id="screen-scope"></p>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="freshness" id="freshness"></span>
+          <button class="btn btn-quiet" id="btn-pkg" onclick="openUpdate(activeTab)" hidden>Actualizar paquetes</button>
+          <button class="btn btn-quiet" id="btn-reboot" onclick="confirmReboot(activeTab)" hidden>Reiniciar servidor</button>
+          <button class="btn btn-quiet" id="btn-refresh" onclick="refreshScreen()">Actualizar</button>
+          <button class="btn btn-primary" onclick="openAddSSH()">Agregar servidor</button>
+        </div>
+      </header>
+
+      <main class="canvas" id="tab-content">
+        <div id="pwd-warning" class="notice hidden">
+          <span>Estás usando la contraseña por defecto.</span>
+          <button class="link" onclick="openSettings()">Cambiarla</button>
+        </div>
+
+        <section class="panel active" id="panel-local">
+          <div id="metrics-local" class="metrics"></div>
+          <div id="local-containers" class="container-grid"></div>
+        </section>
+      </main>
+    </div>
+  </div>
 
   <!-- MODAL: AGREGAR SERVIDOR SSH -->
   <div id="ssh-modal" class="modal hidden">
-    <div class="modal-content modal-small">
+    <div class="modal-content modal-small" role="dialog" aria-modal="true" aria-labelledby="ssh-modal-title">
       <div class="modal-header">
-        <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-          </svg>
-          Agregar servidor SSH
-        </h3>
-        <button onclick="closeSSHModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <h3 id="ssh-modal-title">Agregar servidor</h3>
+        <button class="icon-btn" onclick="closeSSHModal()" aria-label="Cerrar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
       </div>
       <div class="modal-body">
-        <input type="text"     id="new-ssh-name" placeholder="Nombre (ej: VPS Producción)" />
-        <input type="text"     id="new-ssh-host" placeholder="Host (ej: 192.0.2.10)" />
-        <input type="number"   id="new-ssh-port" placeholder="Puerto" value="22" />
-        <input type="text"     id="new-ssh-user" placeholder="Usuario" />
-        <input type="password" id="new-ssh-pass" placeholder="Contraseña" />
+        <label class="field"><span>Nombre</span>
+          <input type="text" id="new-ssh-name" placeholder="VPS de producción" /></label>
+        <div class="field-row">
+          <label class="field"><span>Host</span>
+            <input type="text" id="new-ssh-host" placeholder="192.0.2.10" /></label>
+          <label class="field field-port"><span>Puerto</span>
+            <input type="number" id="new-ssh-port" placeholder="22" value="22" /></label>
+        </div>
+        <label class="field"><span>Usuario</span>
+          <input type="text" id="new-ssh-user" placeholder="root" /></label>
+        <label class="field"><span>Contraseña</span>
+          <input type="password" id="new-ssh-pass" placeholder="••••••••" /></label>
       </div>
       <div class="modal-footer">
-        <button onclick="closeSSHModal()">Cancelar</button>
-        <button class="btn-primary" onclick="saveSSHServer()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          Guardar
-        </button>
+        <button class="btn btn-quiet" onclick="closeSSHModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveSSHServer()">Guardar servidor</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: CONFIRMAR ELIMINACIÓN CONTENEDOR -->
   <div id="confirm-modal" class="modal hidden">
-    <div class="modal-content modal-small">
+    <div class="modal-content modal-small" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-red);">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-          Confirmar eliminación
-        </h3>
-        <button onclick="closeConfirmModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <h3>Eliminar contenedor</h3>
+        <button class="icon-btn" onclick="closeConfirmModal()" aria-label="Cerrar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
       </div>
-      <div id="confirm-message" style="padding: 20px 24px 0; line-height: 1.8;"></div>
+      <div id="confirm-message" class="modal-text"></div>
       <div class="confirm-options">
         <label><input type="checkbox" id="opt-remove-image" /> Eliminar también la imagen</label>
         <label><input type="checkbox" id="opt-remove-volumes" /> Eliminar también los volúmenes anónimos</label>
       </div>
       <div class="modal-footer">
-        <button onclick="closeConfirmModal()">Cancelar</button>
-        <button class="btn-remove" onclick="removeContainer()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-          Eliminar
-        </button>
+        <button class="btn btn-quiet" onclick="closeConfirmModal()">Cancelar</button>
+        <button class="btn btn-danger" onclick="removeContainer()">Eliminar</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: LOGS -->
   <div id="log-modal" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-          </svg>
-          Logs del contenedor
-        </h3>
-        <button onclick="closeModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <h3>Logs del contenedor</h3>
+        <button class="icon-btn" onclick="closeModal()" aria-label="Cerrar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -181,53 +158,34 @@
 
   <!-- MODAL: CONFIRMAR ELIMINAR SERVIDOR SSH -->
   <div id="remove-ssh-modal" class="modal hidden">
-    <div class="modal-content modal-small">
+    <div class="modal-content modal-small" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-red);">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-          Eliminar servidor
-        </h3>
-        <button onclick="closeRemoveSSHModal()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <h3>Eliminar servidor</h3>
+        <button class="icon-btn" onclick="closeRemoveSSHModal()" aria-label="Cerrar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
       </div>
-      <div id="remove-ssh-message" style="padding: 20px 24px; color: var(--text-secondary); line-height: 1.7;">
-        ¿Seguro que quieres eliminar este servidor SSH? Solo se elimina de la lista guardada. Los contenedores del servidor no se afectan.
+      <div id="remove-ssh-message" class="modal-text">
+        ¿Seguro que quieres eliminar este servidor? Solo se elimina de la lista guardada.
+        Los contenedores del servidor no se afectan.
       </div>
       <div class="modal-footer">
-        <button onclick="closeRemoveSSHModal()">Cancelar</button>
-        <button class="btn-remove" id="remove-ssh-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-          </svg>
-          Eliminar servidor
-        </button>
+        <button class="btn btn-quiet" onclick="closeRemoveSSHModal()">Cancelar</button>
+        <button class="btn btn-danger" id="remove-ssh-btn">Eliminar servidor</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: ACTUALIZAR PAQUETES -->
   <div id="update-modal" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7.5-4"></path>
-            <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7.5 4"></path>
-            <polyline points="21 3 21 8 16 8"></polyline>
-            <polyline points="3 21 3 16 8 16"></polyline>
-          </svg>
-          Actualizar paquetes
-        </h3>
-        <button onclick="closeUpdate()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <h3>Actualizar paquetes</h3>
+        <button class="icon-btn" onclick="closeUpdate()" aria-label="Cerrar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -236,73 +194,58 @@
       <div id="update-status" class="update-status">Iniciando...</div>
       <pre id="update-output" class="update-output"></pre>
       <div class="modal-footer">
-        <button onclick="closeUpdate()">Cerrar</button>
+        <button class="btn btn-quiet" onclick="closeUpdate()">Cerrar</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: REINICIAR SERVIDOR -->
   <div id="reboot-modal" class="modal hidden">
-    <div class="modal-content modal-small">
+    <div class="modal-content modal-small" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-orange);">
-            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-            <line x1="12" y1="2" x2="12" y2="12"></line>
-          </svg>
-          Reiniciar servidor
-        </h3>
-        <button onclick="closeReboot()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <h3>Reiniciar servidor</h3>
+        <button class="icon-btn" onclick="closeReboot()" aria-label="Cerrar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
       </div>
-      <div id="reboot-message" style="padding: 20px 24px; line-height: 1.7; color: var(--text-secondary);"></div>
+      <div id="reboot-message" class="modal-text"></div>
       <div class="modal-footer">
-        <button onclick="closeReboot()">Cancelar</button>
-        <button class="btn-restart" onclick="doReboot()">Reiniciar ahora</button>
+        <button class="btn btn-quiet" onclick="closeReboot()">Cancelar</button>
+        <button class="btn btn-danger" onclick="doReboot()">Reiniciar ahora</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: CUENTA -->
   <div id="settings-modal" class="modal hidden">
-    <div class="modal-content modal-small">
+    <div class="modal-content modal-small" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          Cuenta
-        </h3>
-        <button onclick="closeSettings()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <h3>Cuenta</h3>
+        <button class="icon-btn" onclick="closeSettings()" aria-label="Cerrar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
       </div>
       <div class="modal-body">
-        <label class="input-label" for="cur-pass">Contraseña actual</label>
-        <input type="password" id="cur-pass" autocomplete="current-password" />
-
-        <label class="input-label" for="new-user">Nuevo usuario</label>
-        <input type="text" id="new-user" autocomplete="username" />
-
-        <label class="input-label" for="new-pass">Nueva contraseña (opcional)</label>
-        <input type="password" id="new-pass" autocomplete="new-password" placeholder="Déjala vacía para no cambiarla" />
-
-        <label class="input-label" for="new-pass2">Repetir nueva contraseña</label>
-        <input type="password" id="new-pass2" autocomplete="new-password" />
+        <label class="field"><span>Contraseña actual</span>
+          <input type="password" id="cur-pass" autocomplete="current-password" /></label>
+        <label class="field"><span>Usuario</span>
+          <input type="text" id="new-user" autocomplete="username" /></label>
+        <label class="field"><span>Nueva contraseña (opcional)</span>
+          <input type="password" id="new-pass" autocomplete="new-password" placeholder="Déjala vacía para no cambiarla" /></label>
+        <label class="field"><span>Repetir nueva contraseña</span>
+          <input type="password" id="new-pass2" autocomplete="new-password" /></label>
       </div>
       <div id="settings-error" class="form-feedback hidden"></div>
       <div id="settings-ok" class="form-feedback form-ok hidden"></div>
       <div class="modal-footer">
-        <button onclick="closeSettings()">Cancelar</button>
-        <button class="btn-primary" onclick="saveSettings()">Guardar</button>
+        <button class="btn btn-quiet" onclick="closeSettings()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Guardar</button>
       </div>
     </div>
   </div>
@@ -310,12 +253,20 @@
   <!-- PANTALLA DE LOGIN -->
   <div id="login-screen" class="login-screen hidden">
     <form class="login-box" onsubmit="login(event)">
-      <h1>DockPilot</h1>
-      <p>Inicia sesión para continuar</p>
-      <input id="login-user" type="text" placeholder="Usuario" autocomplete="username" />
-      <input id="login-pass" type="password" placeholder="Contraseña" autocomplete="current-password" />
-      <div id="login-error" class="login-error hidden"></div>
-      <button class="btn-primary" type="submit">Entrar</button>
+      <div class="brand brand-lg">
+        <svg class="brand-mark" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="6" rx="2"></rect>
+          <rect x="3" y="14" width="18" height="6" rx="2"></rect>
+        </svg>
+        <span class="brand-name">DockPilot</span>
+      </div>
+      <p class="login-lead">Panel de contenedores Docker</p>
+      <label class="field"><span>Usuario</span>
+        <input id="login-user" type="text" autocomplete="username" /></label>
+      <label class="field"><span>Contraseña</span>
+        <input id="login-pass" type="password" autocomplete="current-password" /></label>
+      <div id="login-error" class="form-feedback hidden"></div>
+      <button class="btn btn-primary btn-block" type="submit">Entrar</button>
     </form>
   </div>
 

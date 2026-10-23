@@ -152,6 +152,8 @@ async function startApp(session) {
 
   renderTabs();
   renderSSHPanels();
+  updateTopbar();
+  stampFreshness();
   loadLocalContainers();
   loadLocalMetrics();
 }
@@ -200,104 +202,134 @@ async function migrateLocalServers() {
   localStorage.removeItem("ssh-servers");
 }
 
-//  RENDER DEL HEADER
+//  NAVEGACIÓN
+function serverIcon() {
+  return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+  </svg>`;
+}
+
 function renderTabs() {
-  const tabs   = document.getElementById("tabs");
-  const servers = sshServers;
+  const nav = document.getElementById("nav");
+  if (!nav) return;
 
-  tabs.innerHTML = `
-    <button class="tab ${activeTab === "local" ? "active" : ""}" onclick="switchTab('local')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-        <line x1="8" y1="21" x2="16" y2="21"></line>
-        <line x1="12" y1="17" x2="12" y2="21"></line>
-      </svg>
-      Local
-    </button>`;
-
-  servers.forEach(s => {
-    tabs.innerHTML += `
-      <button class="tab ${activeTab === s.id ? "active" : ""}" onclick="switchTab('${s.id}')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+  let html = `
+    <div class="nav-row">
+      <button class="nav-item ${activeTab === "local" ? "active" : ""}" onclick="switchTab('local')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
         </svg>
-        ${esc(s.name)}
+        <span>Local</span>
       </button>
-      <button class="tab-close" onclick="event.stopPropagation(); confirmRemoveSSH('${s.id}')" title="Eliminar servidor">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>`;
-  });
+    </div>`;
+
+  if (sshServers.length) {
+    html += `<div class="nav-group">Servidores</div>`;
+    sshServers.forEach(s => {
+      html += `
+        <div class="nav-row">
+          <button class="nav-item ${activeTab === s.id ? "active" : ""}" onclick='switchTab(${JSON.stringify(s.id)})'>
+            ${serverIcon()}
+            <span>${esc(s.name)}</span>
+          </button>
+          <button class="nav-close" title="Eliminar servidor" aria-label="Eliminar ${esc(s.name)}"
+                  onclick='event.stopPropagation(); confirmRemoveSSH(${JSON.stringify(s.id)})'>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>`;
+    });
+  }
+
+  nav.innerHTML = html;
 }
 
 function renderSSHPanels() {
   const content = document.getElementById("tab-content");
-  const servers = sshServers;
 
-  // Eliminar paneles SSH viejos
-  document.querySelectorAll(".tab-panel.ssh-panel").forEach(p => p.remove());
+  document.querySelectorAll(".panel.ssh-panel").forEach(p => p.remove());
 
-  servers.forEach(s => {
-    const panel = document.createElement("div");
-    panel.className = `tab-panel ssh-panel ${activeTab === s.id ? "active" : ""}`;
+  sshServers.forEach(s => {
+    const panel = document.createElement("section");
+    panel.className = `panel ssh-panel ${activeTab === s.id ? "active" : ""}`;
     panel.id = `panel-${s.id}`;
     panel.innerHTML = `
-      <div class="panel-header">
-        <h2>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-          </svg>
-          ${esc(s.name)}
-          <span class="host-badge">${esc(s.username)}@${esc(s.host)}:${s.port}</span>
-        </h2>
-        <div class="panel-actions">
-          <button class="btn-update" onclick="openUpdate('${s.id}')" title="apt update + apt upgrade">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7.5-4"></path>
-              <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7.5 4"></path>
-              <polyline points="21 3 21 8 16 8"></polyline>
-              <polyline points="3 21 3 16 8 16"></polyline>
-            </svg>
-            Actualizar paquetes
-          </button>
-          <button class="btn-reboot" onclick="confirmReboot('${s.id}')" title="Reiniciar el servidor">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-              <line x1="12" y1="2" x2="12" y2="12"></line>
-            </svg>
-            Reiniciar
-          </button>
-          <button class="refresh-btn" onclick="loadSSHContainers('${s.id}')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"></polyline>
-              <polyline points="1 20 1 14 7 14"></polyline>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
-            Actualizar
-          </button>
-        </div>
-      </div>
-      <div id="metrics-${s.id}" class="metrics-bar"></div>
-      <div id="containers-${s.id}" class="container-grid"><p>Cargando...</p></div>`;
+      <div id="metrics-${s.id}" class="metrics"></div>
+      <div id="containers-${s.id}" class="container-grid"></div>`;
     content.appendChild(panel);
   });
 }
 
-//  CAMBIAR PESTAÑA 
+function updateTopbar() {
+  const isLocal = activeTab === "local";
+  const server = sshServers.find(s => s.id === activeTab);
+
+  const title = document.getElementById("screen-title");
+  const scope = document.getElementById("screen-scope");
+  if (title) title.textContent = isLocal ? "Local" : (server ? server.name : "Local");
+  if (scope) {
+    scope.textContent = isLocal
+      ? "Este servidor"
+      : (server ? `${server.username}@${server.host}:${server.port}` : "");
+  }
+
+  const pkg = document.getElementById("btn-pkg");
+  const reboot = document.getElementById("btn-reboot");
+  if (pkg) pkg.hidden = isLocal;
+  if (reboot) reboot.hidden = isLocal;
+}
+
+function setScope(text) {
+  const el = document.getElementById("screen-scope");
+  if (el) el.textContent = text;
+}
+
+function stampFreshness() {
+  const el = document.getElementById("freshness");
+  if (!el) return;
+  const now = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+  el.textContent = `Actualizado ${now}`;
+}
+
+function refreshScreen() {
+  stampFreshness();
+  if (activeTab === "local") {
+    loadLocalContainers();
+    loadLocalMetrics();
+  } else if (sshServers.some(s => s.id === activeTab)) {
+    loadSSHContainers(activeTab);
+  }
+}
+
+function toggleNav() {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("nav-backdrop").classList.toggle("open");
+}
+
+function closeNav() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("nav-backdrop").classList.remove("open");
+}
+
+//  CAMBIAR DE SERVIDOR
 function switchTab(id) {
   activeTab = id;
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-  document.querySelector(`.tab[onclick="switchTab('${id}')"]`).classList.add("active");
-  document.getElementById(`panel-${id}`).classList.add("active");
-  
+  renderTabs();
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  const panel = document.getElementById(`panel-${id}`);
+  if (panel) panel.classList.add("active");
+  updateTopbar();
+
   if (id === "local") {
     loadLocalContainers();
   } else if (sshServers.some(s => s.id === id)) {
     loadSSHContainers(id);
   }
+  closeNav();
 }
 
 //  AGREGAR / ELIMINAR SERVIDOR SSH 
@@ -372,131 +404,83 @@ document.getElementById("remove-ssh-btn").onclick = async function () {
 
 //  UTILIDADES 
 
+const cardCache = {};
+
+function isRunningStatus(status) {
+  return status === "running" || status.startsWith("Up");
+}
+
 function statusBadge(status) {
-  const safe = esc(status);
-  if (status.startsWith("Up"))     return `<span class="status-badge status-running"> ${safe}</span>`;
-  if (status.startsWith("Exited")) return `<span class="status-badge status-exited"> ${safe}</span>`;
-  return `<span class="status-badge status-paused"> ${safe}</span>`;
+  const running = isRunningStatus(status);
+  const exited = status === "exited" || status.startsWith("Exited");
+  const cls = running ? "status-running" : exited ? "status-exited" : "status-paused";
+  const label = running ? "En marcha" : exited ? "Detenido" : status;
+  return `<span class="status ${cls}"><i class="dot"></i>${esc(label)}</span>`;
 }
 
 function renderCard(c, isSSH = false, serverId = null) {
-  const isRunning = c.status.startsWith("Up") || c.status === "running";
-  
-  // Generar botón de abrir si hay puertos publicados
-  let openButton = '';
-  if (isRunning && c.ports && c.ports.length > 0) {
-    const portInfo = c.ports[0];
-    // Usar la IP desde la que se accede al frontend
-    const currentHost = window.location.hostname;
-    const url = `http://${currentHost}:${portInfo.host_port}`;
-    openButton = `
-      <a href="${url}" target="_blank" class="btn-open">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-          <polyline points="15 3 21 3 21 9"></polyline>
-          <line x1="10" y1="14" x2="21" y2="3"></line>
-        </svg>
-        Abrir
-      </a>`;
-  }
+  const running = isRunningStatus(c.status);
+  const exited = c.status === "exited" || c.status.startsWith("Exited");
+  const stateClass = running ? "is-running" : exited ? "is-exited" : "is-paused";
+  cardCache[c.id] = c;
+
+  const openButton = running && c.ports && c.ports.length
+    ? `<a class="action action-open" href="http://${window.location.hostname}:${c.ports[0].host_port}" target="_blank" rel="noopener">Abrir</a>`
+    : "";
+
+  const call = (action) => isSSH
+    ? `sshAction("${action}",${JSON.stringify(c.id)},${JSON.stringify(serverId)})`
+    : `localAction("${action}",${JSON.stringify(c.id)})`;
+
+  const logs = isSSH
+    ? `sshLogs(${JSON.stringify(c.id)},${JSON.stringify(serverId)})`
+    : `localLogs(${JSON.stringify(c.id)})`;
 
   return `
-    <div class="container-card">
-      <div class="container-card-header">
+    <article class="card ${stateClass}">
+      <div class="card-head">
         <h3>${esc(c.name)}</h3>
         ${statusBadge(c.status)}
       </div>
-      <div class="meta">
-        <span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          </svg>
-          <code>${esc(c.image)}</code>
-        </span>
-        <span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="4" y1="9" x2="20" y2="9"></line>
-            <line x1="4" y1="15" x2="20" y2="15"></line>
-            <line x1="10" y1="3" x2="8" y2="21"></line>
-            <line x1="16" y1="3" x2="14" y2="21"></line>
-          </svg>
-          ${c.id.substring(0, 12)}
-        </span>
-        ${c.ports && c.ports.length > 0 ? `
-        <span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-          ${c.ports.map(p => p.host_port).join(', ')}
-        </span>` : ''}
-      </div>
+      <p class="card-meta">
+        <span class="meta-line"><code>${esc(c.image)}</code></span>
+        <span class="meta-line">${esc(String(c.id).slice(0, 12))}${c.ports && c.ports.length ? " · " + c.ports.map(p => ":" + esc(p.host_port)).join(" ") : ""}</span>
+      </p>
       <div class="card-actions">
         ${openButton}
-        <button class="btn-start" ${isRunning ? "disabled" : ""} onclick="${isSSH ? `sshAction('start','${c.id}','${serverId}')` : `localAction('start','${c.id}')`}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          Iniciar
-        </button>
-        <button class="btn-stop" ${!isRunning ? "disabled" : ""} onclick="${isSSH ? `sshAction('stop','${c.id}','${serverId}')` : `localAction('stop','${c.id}')`}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="6" y="4" width="4" height="16"></rect>
-            <rect x="14" y="4" width="4" height="16"></rect>
-          </svg>
-          Detener
-        </button>
-        <button class="btn-restart" ${!isRunning ? "disabled" : ""} onclick="${isSSH ? `sshAction('restart','${c.id}','${serverId}')` : `localAction('restart','${c.id}')`}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-          </svg>
-          Reiniciar
-        </button>
-        <button class="btn-logs" onclick="${isSSH ? `sshLogs('${c.id}','${serverId}')` : `localLogs('${c.id}')`}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-          </svg>
-          Logs
-        </button>
-        ${!isSSH ? `<button class="btn-remove" onclick="confirmRemove('${c.id}','${c.name}','${c.image}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-          Eliminar
-        </button>` : ''}
+        <button class="action" onclick='${logs}'>Logs</button>
+        <button class="action" ${!running ? "disabled" : ""} onclick='${call("restart")}'>Reiniciar</button>
+        <button class="action" ${running ? "disabled" : ""} onclick='${call("start")}'>Iniciar</button>
+        <button class="action" ${!running ? "disabled" : ""} onclick='${call("stop")}'>Detener</button>
+        ${!isSSH ? `<button class="action danger" onclick='confirmRemove(${JSON.stringify(c.id)})'>Eliminar</button>` : ""}
       </div>
-    </div>`;
+    </article>`;
 }
 
 //  DOCKER LOCAL 
 
 async function loadLocalContainers() {
   const div = document.getElementById("local-containers");
-  if (!div) {
-    console.error('No se encontró el div local-containers');
-    return;
-  }
-  div.innerHTML = '<div class="empty-state"><p>Cargando contenedores...</p></div>';
-  
+  if (!div) return;
+
+  div.innerHTML = '<div class="empty-state">Cargando contenedores…</div>';
+
   try {
-    console.log('Fetching containers from API...');
-    const res  = await apiFetch(`${API}/containers/`);
-    console.log('Response status:', res.status);
+    const res = await apiFetch(`${API}/containers/`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    console.log('Containers data:', data);
-    
+
     div.innerHTML = data.length
       ? data.map(c => renderCard(c, false)).join("")
-      : '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg><p>No hay contenedores locales.</p></div>';
+      : '<div class="empty-state"><strong>No hay contenedores</strong> en este host.</div>';
+
+    const stopped = data.filter(c => !isRunningStatus(c.status)).length;
+    setScope(`${data.length} contenedor${data.length === 1 ? "" : "es"}` +
+      (stopped ? ` · ${stopped} detenido${stopped === 1 ? "" : "s"}` : ""));
+    stampFreshness();
   } catch (e) {
-    console.error('Error loading containers:', e);
-    div.innerHTML = `<p style="color:var(--accent-red)">Error al conectar con el backend: ${e.message}</p>`;
+    console.error("Error loading containers:", e);
+    div.innerHTML = `<div class="empty-state">No se pudo leer la lista: ${esc(e.message)}</div>`;
   }
 }
 
@@ -522,13 +506,14 @@ async function localLogs(id) {
 
 let removingContainerId = null;
 
-function confirmRemove(id, name, image) {
+function confirmRemove(id) {
   const modal = document.getElementById("confirm-modal");
+  const c = cardCache[id] || {};
   removingContainerId = id;
   document.getElementById("confirm-message").innerHTML =
     `Se eliminará de forma <strong>permanente</strong>:<br><br>
-      Contenedor: <code>${esc(name)}</code><br>
-      Imagen: <code>${esc(image)}</code><br><br>
+      Contenedor: <code>${esc(c.name || id)}</code><br>
+      Imagen: <code>${esc(c.image || "—")}</code><br><br>
      <strong>Esta acción no se puede deshacer.</strong>`;
   document.getElementById("opt-remove-image").checked = false;
   document.getElementById("opt-remove-volumes").checked = false;
@@ -569,7 +554,7 @@ async function removeContainer() {
 async function loadSSHContainers(serverId) {
   const div = document.getElementById(`containers-${serverId}`);
   if (!div) return;
-  div.innerHTML = "<p>Conectando...</p>";
+  div.innerHTML = '<div class="empty-state">Conectando por SSH…</div>';
   sshMetricsBackoff[serverId] = 0; // refresco manual: reintentar ya
   loadSSHMetrics(serverId);
   try {
@@ -580,14 +565,20 @@ async function loadSSHContainers(serverId) {
     });
     const data = await res.json();
     if (!res.ok) {
-      div.innerHTML = `<p style="color:var(--accent-red)">${data.detail || "Error al conectar por SSH."}</p>`;
+      div.innerHTML = `<div class="empty-state">${esc(data.detail || "No se pudo conectar por SSH.")}</div>`;
       return;
     }
     div.innerHTML = data.length
       ? data.map(c => renderCard(c, true, serverId)).join("")
-      : "<p>No hay contenedores en este servidor.</p>";
+      : '<div class="empty-state">No hay contenedores en este servidor.</div>';
+
+    const server = sshServers.find(s => s.id === serverId);
+    const base = server ? `${server.username}@${server.host}:${server.port}` : "";
+    const count = `${data.length} contenedor${data.length === 1 ? "" : "es"}`;
+    setScope(base ? `${base} · ${count}` : count);
+    stampFreshness();
   } catch (e) {
-    div.innerHTML = `<p style="color:red">Error al conectar por SSH.</p>`;
+    div.innerHTML = '<div class="empty-state">No se pudo conectar por SSH.</div>';
   }
 }
 
@@ -763,75 +754,44 @@ setInterval(async function() {
 
 // ── METRICAS ──────────────────────────────────────────────
 
+function metricCell(label, valueHtml, ratio, cls = "", showBar = true, hue = "") {
+  const width = Math.max(0, Math.min(100, Number(ratio) || 0));
+  return `
+    <div class="metric ${hue}">
+      <span class="metric-label">${label}</span>
+      <div class="metric-value">${valueHtml}</div>
+      <span class="metric-bar ${cls}"${showBar ? "" : ' style="visibility:hidden"'}>
+        <i style="width:${width}%"></i>
+      </span>
+    </div>`;
+}
+
 function renderMetrics(m, elementId) {
-  const el = document.getElementById(elementId)
-  if (!el) return
+  const el = document.getElementById(elementId);
+  if (!el) return;
 
   if (!m) {
-    el.innerHTML = '<p class="metrics-error">No se pudieron cargar las metricas del sistema.</p>'
-    return
+    el.innerHTML = '<p class="metrics-error">No se pudieron cargar las métricas.</p>';
+    return;
   }
 
-  const tempHtml = m.temperature !== null && m.temperature !== undefined
-    ? `<div class="metric-item">
-        <span class="metric-label">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
-          </svg>
-          TEMP
-        </span>
-        <div class="metric-value">${m.temperature}°C</div>
-      </div>`
-    : ''
+  const cpuClass = m.cpu > 80 ? "danger" : m.cpu > 50 ? "warning" : "";
+  const ramClass = m.ram.percent > 80 ? "danger" : m.ram.percent > 60 ? "warning" : "";
+  const diskClass = m.disk.percent > 85 ? "danger" : m.disk.percent > 65 ? "warning" : "";
 
-  const cpuClass = m.cpu > 80 ? 'danger' : m.cpu > 50 ? 'warning' : ''
-  const ramClass = m.ram.percent > 80 ? 'danger' : m.ram.percent > 60 ? 'warning' : ''
-  const diskClass = m.disk.percent > 85 ? 'danger' : m.disk.percent > 65 ? 'warning' : ''
+  const tempCell = (m.temperature !== null && m.temperature !== undefined)
+    ? metricCell("Temperatura", `${m.temperature}<span class="metric-unit">°C</span>`, 0, "", false, "hue-temp")
+    : `<div class="metric hue-temp">
+        <span class="metric-label">Temperatura</span>
+        <div class="metric-value metric-empty">sin sensor</div>
+        <span class="metric-bar" style="visibility:hidden"><i></i></span>
+      </div>`;
 
-  el.innerHTML = `
-    <div class="metric-item">
-      <span class="metric-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-          <rect x="9" y="9" width="6" height="6"></rect>
-        </svg>
-        CPU
-      </span>
-      <div class="metric-bar-wrap">
-        <div class="metric-bar ${cpuClass}" style="width:${m.cpu}%"></div>
-      </div>
-      <div class="metric-value">${m.cpu}%</div>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="3" y1="9" x2="21" y2="9"></line>
-          <line x1="9" y1="21" x2="9" y2="9"></line>
-        </svg>
-        RAM
-      </span>
-      <div class="metric-bar-wrap">
-        <div class="metric-bar ${ramClass}" style="width:${m.ram.percent}%"></div>
-      </div>
-      <div class="metric-value">${m.ram.used_gb} / ${m.ram.total_gb} GB <span style="color:var(--text-muted)">${m.ram.percent}%</span></div>
-    </div>
-    <div class="metric-item">
-      <span class="metric-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-        </svg>
-        DISCO
-      </span>
-      <div class="metric-bar-wrap">
-        <div class="metric-bar ${diskClass}" style="width:${m.disk.percent}%"></div>
-      </div>
-      <div class="metric-value">${m.disk.used_gb} / ${m.disk.total_gb} GB <span style="color:var(--text-muted)">${m.disk.percent}%</span></div>
-    </div>
-    ${tempHtml}
-  `
+  el.innerHTML =
+    metricCell("Procesador", `${m.cpu}<span class="metric-unit">%</span>`, m.cpu, cpuClass) +
+    metricCell(`Memoria · ${m.ram.used_gb}/${m.ram.total_gb} GB`, `${m.ram.percent}<span class="metric-unit">%</span>`, m.ram.percent, ramClass, true, "hue-ram") +
+    metricCell(`Disco · ${m.disk.used_gb}/${m.disk.total_gb} GB`, `${m.disk.percent}<span class="metric-unit">%</span>`, m.disk.percent, diskClass, true, "hue-disk") +
+    tempCell;
 }
 
 async function loadLocalMetrics() {
