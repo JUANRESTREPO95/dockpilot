@@ -1,0 +1,31 @@
+services:
+  dockpilot:
+    build: ./backend
+    container_name: dockpilot
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - dockpilot-data:/data
+    environment:
+      - HOST_IP=${HOST_IP:-}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:-}
+    labels:
+      - "com.dockpilot.internal=true"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    read_only: true
+    tmpfs:
+      - /tmp
+    mem_limit: 512m
+    pids_limit: 200
+
+volumes:
+  dockpilot-data:

@@ -1,0 +1,25 @@
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+data/
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Ficha privada del proyecto (no forma parte de la app)
+proceso.md
+decisiones.md
+pendientes.md
+
+# Sistema
+.DS_Store
+Thumbs.db
